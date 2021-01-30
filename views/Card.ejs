@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css" type="text/css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="./style.css">
+    <title>Document</title>
+</head>
+<body>
+  <h1>Complete your donation</h1>
+  <p>Thank you, <%=name%>, for your generosity! Please enter your payment details below to complete your donation.</p>
+  
+    <form method="POST" action="/thanks" id="card">
+      <div>
+        <label for="cardholder-name">Cardholder name: </label>
+        <input id="cardholder-name" type="text" name="cardholder-name" value="<%=name%>">
+      </div>
+      <div>
+        <label for="card-element">Credit or debit card:</label>
+        <div id="card-element" style="width: 30em; height: 2em;" #stripecardelement>
+          
+        </div>
+      </div>
+      <div id="card-errors">
+        <span style="width: 30em; height: 2em; letter-spacing: 0em"  role="alert"></span>
+      </div>
+      <div>
+        <button id="card-button" data-secret="<%=intentSecret%>">Donate <%=amount%></button>
+      </div>
+    </form>
+
+  <script >
+    window.onload=(event)=>{
+    const stripe = Stripe('pk_test...........');
+    //creating the stripe element and mounting the card
+const elements = stripe.elements();
+const card = elements.create('card');
+card.mount('#card-element');
+
+card.on('change', function(event) {
+    const displayError = document.getElementById('card-errors');
+    if (event.error) {
+      displayError.textContent = event.error.message;
+    } else {
+      displayError.textContent = '';
+    }
+  });
+
+const cardholderName = document.getElementById('cardholder-name');
+//Card button contains the attribute data-secret cointaining client secret
+
+const cardButton = document.getElementById('card-button');
+const clientSecret = cardButton.dataset.secret;
+
+// Upon button clicking, complete the payment:
+cardButton.addEventListener('click', async (event) => {
+  event.preventDefault();
+  try {
+    const result = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: card,
+        billing_details: {name: cardholderName.value,address:{city:"Mumbai",country:"IN",state:"Mh"}},
+      }
+    });
+    if (result.error) {
+      document.getElementById('card-errors').textContent = result.error.message;
+      return false;
+    } else {
+      document.getElementById('card').submit();
+    }
+  } catch(err) {
+    document.getElementById('card-errors').textContent = err.message;
+    return false;
+  }
+});
+}
+
+  </script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>
